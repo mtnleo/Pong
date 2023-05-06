@@ -10,6 +10,8 @@ GREY = (142, 158, 164)
 DARK_GREY = (112, 128, 144)
 WHITE = (255, 255, 255)
 
+pg.display.set_caption("Pong by mtnleo")
+
 def main():
     pg.init()
     screen = pg.display.set_mode((WIDTH, HEIGHT))
