@@ -106,6 +106,10 @@ def main():
                     ball.move_ball(glider_1=player_glider, glider_2=cpu_glider)
                 ball.draw_ball(screen)
 
+            ## move the cpu
+            if not two_players:
+                cpu_glider.get_movement_cpu(ball.y)
+
             score_rtn = ball.detect_score()
             if score_rtn == -1:
                 p1_score += 1
@@ -127,7 +131,11 @@ def main():
 
             pg.display.flip()
 
-        
+        if p1_score >= 5:
+            Menu.draw_win_p1(screen)
+        elif p2_score >= 5:
+            Menu.draw_win_p2(screen)
+        pg.display.flip()
         pg.time.wait(3000)
         running = False
             
@@ -177,6 +185,15 @@ class Cpu_Glider(Glider):
         super().__init__(WIDTH - 16, SCR_HEIGHT / 2)
         self.speed = 3
 
+    def get_movement_cpu(self, ball_pos):
+        difference = self.y - ball_pos
+
+        if abs(difference) > 10:
+            if self.y < ball_pos:
+                self.move_glider_down()
+            elif self.y > ball_pos:
+                self.move_glider_up()
+
 class Second_Glider(Glider):
 
     def __init__(self, SCR_HEIGHT):
@@ -193,7 +210,7 @@ class Ball():
     terminal_velocity_x = 1.9
     terminal_velocity_y = 1.6
     vector_velocities_x = [-1, 1]
-    vector_velocities_y = [-.4, .4]
+    vector_velocities_y = [-.5, .5]
 
     def __init__(self):
         self.radius = 6
@@ -213,16 +230,14 @@ class Ball():
 
         if self.detect_collision_x(glider_1, glider_2):
             if abs(self.vector.x) <= self.terminal_velocity_x:
-                self.vector.x = self.vector.x * -1.02
-                print(self.vector.x)
+                self.vector.x = self.vector.x * -1.09
             else:
                 self.vector.x = self.vector.x * -1
-                print("TERMINAL")
             
             if abs(self.vector.y) <= self.terminal_velocity_y:
                 self.vector.y += rd.uniform(-.62, .4)
             else:
-                self.vector.y += rd.uniform(-.72, 0)
+                self.vector.y += rd.uniform(-.72, .05)
 
         vec_x = self.vector.x * self.speed
         vec_y = self.vector.y * self.speed
@@ -285,6 +300,15 @@ class Menu():
         text_score2 = font.render(str(score2), True, LIGHTER_GREY)
         screen.blit(text_score1, ((WIDTH / 2) - 50, 30))
         screen.blit(text_score2, ((WIDTH / 2) + 33, 30))
+
+    def draw_win_p1(screen):
+        font = pg.font.SysFont("Consola", 40, bold=True)
+        text1 = font.render("Winner!", True, LIGHTER_GREY)
+        screen.blit(text1, ((WIDTH / 2) - 150, HEIGHT / 2))
+    def draw_win_p2(screen):
+        font = pg.font.SysFont("Consola", 40, bold=True)
+        text1 = font.render("Winner!", True, LIGHTER_GREY)
+        screen.blit(text1, ((WIDTH / 2) + 51, HEIGHT / 2))
 
 class MenuMultiplayer(Menu):
 
