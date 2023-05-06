@@ -1,9 +1,11 @@
 import pygame as pg
+import time
 import random as rd
 
 WIDTH = 700
 HEIGHT = 400
 
+GREY = (142, 158, 164)
 DARK_GREY = (112, 128, 144)
 WHITE = (255, 255, 255)
 
@@ -12,21 +14,53 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     clock = pg.time.Clock()
     running = True
+    decision = False #evaluate when user selects a mode
 
     two_players = True ## change it depedning on what mode the player's in
 
     #instantiate glider
     player_glider = Player_Glider(HEIGHT)
 
-    if two_players:
-        second_glider = Second_Glider(HEIGHT)
-    else:
-        cpu_glider = Cpu_Glider(HEIGHT)
+    second_glider = Second_Glider(HEIGHT)
+    cpu_glider = Cpu_Glider(HEIGHT)
 
     # instantiate ball
     ball = Ball()
 
-    while running:
+    while running and not decision:
+        clock.tick(60)
+        
+        menu_mp = MenuMultiplayer()
+        menu_cpu = MenuCpu()
+
+        for event in pg.event.get():
+            keys_pressed = pg.key.get_pressed()
+
+            if event.type == pg.QUIT:
+                running = False
+        
+            if event.type == pg.MOUSEBUTTONDOWN:
+                x, y = pg.mouse.get_pos()
+
+                if menu_mp.check_clicked(x, y):
+                    decision = True
+                    two_players = True
+                elif menu_cpu.check_clicked(x, y):
+                    decision = True
+                    two_players = False
+
+            screen.fill(DARK_GREY)
+            pg.draw.rect(screen, GREY, pg.Rect(WIDTH / 2 - 2, 0, 4, HEIGHT)) # middle line
+            menu_cpu.draw_menu(screen)
+            menu_mp.draw_menu(screen)
+            player_glider.draw_glider(screen)
+            cpu_glider.draw_glider(screen)
+            pg.display.flip()
+
+
+        time.sleep(0.5)
+
+    while running and decision:
         clock.tick(60)
 
         for event in pg.event.get():
@@ -34,6 +68,7 @@ def main():
 
             if event.type == pg.QUIT:
                 running = False
+  
 
         ### 2 players
         if two_players:
@@ -51,6 +86,8 @@ def main():
 
         ## screen fill & drawing
         screen.fill(DARK_GREY)
+        pg.draw.rect(screen, GREY, pg.Rect(WIDTH / 2 - 2, 0, 4, HEIGHT))
+
         if two_players:
             ball.move_ball(glider_1=player_glider, glider_2=second_glider)
         else:
@@ -66,7 +103,6 @@ def main():
 
         pg.display.flip()
         
-
 
     pg.quit()
 
@@ -123,13 +159,14 @@ class Second_Glider(Glider):
 class Ball():
     x: int
     y: int
-    terminal_velocity = 1.5
+    terminal_velocity_x = 1.5
+    terminal_velocity_y = 2.3
 
     def __init__(self):
         self.radius = 6
         self.x = WIDTH / 2
         self.y = HEIGHT / 2
-        self.vector = pg.Vector2(1, -2)
+        self.vector = pg.Vector2(1, 0)
         self.speed = 2.5
         self.ball = pg.Rect(self.x - self.radius, self.y - self.radius, self.radius * 2, self.radius * 2)
 
@@ -142,11 +179,15 @@ class Ball():
             self.vector.y = self.vector.y * -1
 
         if self.detect_collision_x(glider_1, glider_2):
-            if self.vector.x <= self.terminal_velocity:
+            if self.vector.x <= self.terminal_velocity_x:
                 self.vector.x = self.vector.x * -1.09
             else:
                 self.vector.x = self.vector.x * -1.09
-            self.vector.y += rd.uniform(-1.2, 1.2)
+            
+            if self.vector.y <= self.terminal_velocity_y:
+                self.vector.y += rd.uniform(-.92, .9)
+            else:
+                self.vector.y += rd.uniform(-.92, .52)
 
         vec_x = self.vector.x * self.speed
         vec_y = self.vector.y * self.speed
@@ -161,7 +202,50 @@ class Ball():
         return pg.Rect.colliderect(self.ball, glider_1.rect) or pg.Rect.colliderect(self.ball, glider_2.rect)
 
     
+    ##########################
+    ###### MAIN MENU #########
+    ##########################
+
+class Menu():
+
+    rect: pg.Rect
+    x: int
+    y: int
+
+    def __init__(self, x: int, y: int):
+        self.rect_width = 250
+        self.rect_height = 60
+        self.x = x
+        self.y = y
+
+    def check_clicked(self, x, y):
+        return self.rect.collidepoint(x, y)
+    
+    def draw_menu(self, screen):
+        font = pg.font.SysFont("Consola", 40,)
+        pg.draw.rect(screen, WHITE, self.rect, width=0)
+        text_draw = font.render(self.text, True, (0, 0, 0))
+        screen.blit(text_draw, (self.rect.center[0] - 80, self.rect.center[1] - 15))
+
+class MenuMultiplayer(Menu):
+
+    def __init__(self):
+        super().__init__(WIDTH / 2, HEIGHT / 2 - 20)
+        self.rect = pg.Rect(self.x - self.rect_width / 2, self.y - self.rect_height, self.rect_width, self.rect_height)
+        self.text = "multiplayer"
+
+class MenuCpu(Menu):
+
+    def __init__(self):
+        super().__init__(WIDTH / 2, HEIGHT / 2 - 20)
+        self.rect = pg.Rect(self.x - self.rect_width / 2, self.y + self.rect_height, self.rect_width, self.rect_height)
+        self.text = "   vs. CPU"
 
 
+
+    ##########################
+    ######## MAIN ############
+    ##########################
+    
 if __name__ == "__main__":
     main()
