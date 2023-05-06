@@ -158,27 +158,30 @@ class Glider():
 
     def move_glider_up(self):
         if (self.y - self.rect_height / 2 >= self.top):
-            self.y -= 5
+            self.y -= self.speed
 
     def move_glider_down(self):
         if (self.y + self.rect_height / 2 <= self.bottom):
-            self.y += 5
+            self.y += self.speed
 
 
 class Player_Glider(Glider):
 
     def __init__(self, SCR_HEIGHT):
         super().__init__(10, SCR_HEIGHT / 2)
+        self.speed = 5
 
 class Cpu_Glider(Glider):
 
     def __init__(self, SCR_HEIGHT):
         super().__init__(WIDTH - 16, SCR_HEIGHT / 2)
+        self.speed = 3
 
 class Second_Glider(Glider):
 
     def __init__(self, SCR_HEIGHT):
         super().__init__(WIDTH - 16, SCR_HEIGHT / 2)
+        self.speed = 5
 
 ##########################
 ### BALL CLASSES #########
@@ -187,17 +190,17 @@ class Second_Glider(Glider):
 class Ball():
     x: int
     y: int
-    terminal_velocity_x = 1.5
-    terminal_velocity_y = 2.3
-    vector_velocities_x = [-1.7, -1.2, 1.2, 1.7]
-    vector_velocities_y = [-1.5, -1, -.5, .5, 1, 1.5]
+    terminal_velocity_x = 1.9
+    terminal_velocity_y = 1.6
+    vector_velocities_x = [-1, 1]
+    vector_velocities_y = [-.4, .4]
 
     def __init__(self):
         self.radius = 6
         self.x = WIDTH / 2
         self.y = HEIGHT / 2
         self.vector = pg.Vector2(rd.choice(self.vector_velocities_x), rd.choice(self.vector_velocities_y))
-        self.speed = 2.5
+        self.speed = 6
         self.ball = pg.Rect(self.x - self.radius, self.y - self.radius, self.radius * 2, self.radius * 2)
 
     def draw_ball(self, screen):
@@ -209,15 +212,17 @@ class Ball():
             self.vector.y = self.vector.y * -1
 
         if self.detect_collision_x(glider_1, glider_2):
-            if self.vector.x <= self.terminal_velocity_x:
-                self.vector.x = self.vector.x * -1.09
+            if abs(self.vector.x) <= self.terminal_velocity_x:
+                self.vector.x = self.vector.x * -1.02
+                print(self.vector.x)
             else:
-                self.vector.x = self.vector.x * -1.09
+                self.vector.x = self.vector.x * -1
+                print("TERMINAL")
             
-            if self.vector.y <= self.terminal_velocity_y:
-                self.vector.y += rd.uniform(-.92, .9)
+            if abs(self.vector.y) <= self.terminal_velocity_y:
+                self.vector.y += rd.uniform(-.62, .4)
             else:
-                self.vector.y += rd.uniform(-.92, .52)
+                self.vector.y += rd.uniform(-.72, 0)
 
         vec_x = self.vector.x * self.speed
         vec_y = self.vector.y * self.speed
